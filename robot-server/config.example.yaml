@@ -1,0 +1,22 @@
+# Copy to ~/robot_app/config.yaml on the robot and change what you need.
+# Anything left out uses the defaults in robot_server/config.py.
+# The access token is generated automatically on first start.
+
+server:
+  port: 8765
+  name: ROSOrin
+
+chassis:
+  max_linear: 0.35      # m/s at full stick
+  max_angular: 1.5      # rad/s at full stick
+  invert_x: false       # flip if forward drives backward
+  invert_y: false       # flip if strafing is mirrored
+  invert_rotation: false
+
+safety:
+  command_timeout: 0.4  # seconds without a command before the robot stops
+
+camera:
+  mode: 2               # 0=320x200, 1=480x300, 2=640x400
+  quality: 70
+  fps: 15

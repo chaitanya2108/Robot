@@ -1,0 +1,4 @@
+# Robot runs Python 3.6 (Ubuntu 18.04 / JetPack 4.6). These are the newest versions that support it.
+aiohttp==3.8.6
+pyserial>=3.4
+PyYAML>=3.12

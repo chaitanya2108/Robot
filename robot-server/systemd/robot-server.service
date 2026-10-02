@@ -1,0 +1,19 @@
+[Unit]
+Description=Robot control server (joystick + camera)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hiwonder
+WorkingDirectory=/home/hiwonder/robot_app/server
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m robot_server
+Restart=always
+RestartSec=3
+# Give the motors a chance to stop cleanly
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
