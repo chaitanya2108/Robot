@@ -5,6 +5,7 @@ Runs on the robot (Jetson Nano, Ubuntu 18.04, Python 3.6). Replaces the Hiwonder
 - **Driving**: WebSocket commands -> mecanum kinematics -> STM32 motor board on `/dev/rrc`
 - **Camera**: `camera_bridge` (C++, Deptrum Aurora 930 SDK) -> MJPEG over HTTP, only while someone watches
 - **Telemetry**: battery, WiFi signal, CPU temperature, camera fps, drive state
+- **Gesture control**: MediaPipe Hands on the Jetson GPU (separate worker process, ~20 ms/frame). Command gestures + a Follow me mode. Code in `robot_server/gestures/` (classifier, controller state machine, worker, service). Tuning under `gestures:` in the config. Needs the robot's desktop (X) session, which starts automatically at boot.
 - **Extras**: buzzer horn, sound clips on the USB speaker, physical buttons (KEY1 = back to hotspot mode, hold KEY2 = shut down)
 - **Security**: every request needs the access token; camera URLs use short-lived tickets so the token never appears in a URL
 

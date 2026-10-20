@@ -30,11 +30,12 @@ Phone app (Expo/React Native)  <--- home WiFi --->  robot-server (Python, on the
 
 ## History
 
+- 2026-09-30: Phase 2, hand gesture control from the robot camera (commands + Follow me).
+
 - 2026-09-30: Original Hiwonder software backed up to the PC Desktop (`robot_backup_2026-09-30`), removed from the robot, replaced by `robot-server`. Useful hardware code kept in `~/robot_app/vendor`.
 
 ## Ideas for later
 
-- Hand gesture control using the camera
 - Lidar: obstacle stop + radar view in the app
 - Depth stream / point cloud
 - ROS 2 bridge for mapping and navigation

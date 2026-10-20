@@ -30,6 +30,23 @@ ssh hiwonder@192.168.1.105 "cd ~/robot_app/server && python3 -m robot_server --s
 | Megaphone | Horn (buzzer) |
 | Notes | Play a sound clip on the robot speaker |
 | Camera icon | Turn the video feed on/off (saves battery and WiFi) |
+| Hand icon | Gesture control: drive the robot with hand signs in front of its camera (see below) |
+
+## Gesture control
+
+Tap the hand icon. The robot starts watching its own camera (the video shows your hand skeleton) and the joysticks are disabled. Tap **Use joysticks** to take over again. STOP on the phone always stops the robot, in any mode.
+
+| Your hand | Robot |
+|---|---|
+| Open palm or fist | Stop (instant) |
+| Thumbs up / down | Forward / backward |
+| One finger pointing left / right | Turn that way |
+| Two fingers pointing left / right | Slide sideways that way |
+| Peace sign, hold 1 s | **Follow me**: keeps your hand centred and at the same distance |
+| In Follow me: fist, hold 1 s | Back to gesture commands |
+| Hand out of view | Stop (Follow me ends after 5 s) |
+
+Left/right is the way you point, so the robot goes where you point. Gesture mode keeps running if you put the phone away; show an open palm or fist to stop. The ? in the gesture panel shows this list in the app.
 
 Settings let you switch to one-stick (car-style) driving, change the dead zone, turn off fine control, haptics and the stats overlay. Rotate the phone for the full-screen landscape layout.
 
@@ -37,7 +54,7 @@ Settings let you switch to one-stick (car-style) driving, change the dead zone, 
 
 - The robot enforces its own top speed and acceleration limits (in `~/robot_app/config.yaml` on the robot). The app only sends -1..1 stick values.
 - The app sends commands 20 times a second while a stick is held. If the robot hears nothing for 0.4 s (WiFi drop, app killed, phone locked) it stops by itself.
-- Going to the background, leaving the drive screen or losing the connection stops the robot.
+- In joystick mode, going to the background, leaving the drive screen or losing the connection stops the robot. Gesture mode is hands-free, so it keeps running without the phone; any stop pose or losing sight of your hand stops it.
 - Only one phone can drive at a time. A second phone sees a "Take control" button.
 
 ## Project layout
@@ -48,9 +65,9 @@ src/
     _layout.tsx        Providers, navigation, keeps the connection open in the foreground
     index.tsx          Sends you to Connect or Drive
     connect.tsx        Robot address + token, tests the connection
-    drive.tsx          Camera + joysticks + HUD (portrait and landscape layouts)
+    drive.tsx          Camera + joysticks + HUD + gesture mode (portrait and landscape layouts)
     settings.tsx       Driving and display settings, robot info
-  components/          Joystick, CameraView (MJPEG in a WebView), Hud, EStopButton, UI kit
+  components/          Joystick, CameraView (MJPEG in a WebView), Hud, EStopButton, GesturePanel, UI kit
   lib/
     robotClient.ts     WebSocket client: auth, auto-reconnect, telemetry, commands
     api.ts             HTTP calls: health check, camera ticket

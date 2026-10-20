@@ -68,6 +68,22 @@ DEFAULTS = {
         "wifi_reset_pin": 25,   # short press: go back to hotspot mode
         "shutdown_pin": 4,      # hold ~1.5 s: shut the robot down
     },
+    "gestures": {
+        "enabled": True,
+        "speed": 0.5,            # fraction of chassis max speed in command mode
+        "follow_speed": 0.5,     # fraction of chassis max speed in follow mode
+        "confirm_frames": 3,     # a moving pose must be seen this many frames in a row
+        "hold_seconds": 1.0,     # peace sign / fist hold time to enter / leave follow mode
+        "follow_lost_timeout": 5.0,  # leave follow mode if the hand is gone this long
+        "follow_turn_gain": 1.2,
+        "follow_distance_gain": 2.5,
+        "follow_center_deadband": 0.06,
+        "follow_distance_deadband": 0.12,
+        "mirror": False,         # set true if the camera image is mirrored
+        # MediaPipe's GPU build needs the robot's desktop (X) session
+        "display": ":0",
+        "xauthority": "~/.Xauthority",
+    },
     "battery": {
         # 3S pack: used for the percentage estimate only
         "empty_mv": 10000,

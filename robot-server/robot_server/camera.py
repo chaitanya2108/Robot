@@ -37,6 +37,10 @@ class CameraService(object):
         self._idle_handle = None
         self._lock = threading.Lock()
         self._backoff = 1.0
+        # Gesture mode hooks: raw frames go to listeners; when override is on,
+        # viewers get frames from publish_processed() instead of the raw feed.
+        self.raw_listeners = []
+        self.override = False
 
     # ---- lifecycle --------------------------------------------------------
     @property
@@ -124,6 +128,19 @@ class CameraService(object):
             self._start()
 
     def _publish(self, data):
+        for listener in list(self.raw_listeners):
+            try:
+                listener(data)
+            except Exception:
+                log.exception("raw frame listener failed")
+        if not self.override:
+            self._emit(data)
+
+    def publish_processed(self, data):
+        if self.override:
+            self._emit(data)
+
+    def _emit(self, data):
         self.frame = data
         self.frame_id += 1
         self.frame_time = time.time()

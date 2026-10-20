@@ -49,6 +49,18 @@ export type Telemetry = {
   cpu_temp_c: number | null;
   wifi: { link: number; dbm: number } | null;
   clients: number;
+  gesture: GestureStatus | null;
+};
+
+export type GestureStatus = {
+  enabled: boolean;
+  ready: boolean;
+  mode: 'command' | 'follow' | null;
+  gesture: string | null;
+  action: string | null;
+  fps: number;
+  infer_ms: number | null;
+  error: string | null;
 };
 
 export type Hello = {
@@ -58,6 +70,7 @@ export type Hello = {
   version: string;
   limits: { max_linear: number; max_angular: number };
   sounds: string[];
+  features?: { gestures?: boolean };
 };
 
 export type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'unauthorized';

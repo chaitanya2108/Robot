@@ -17,6 +17,7 @@ WebSocket messages (client -> robot)
   {"t":"release"}
   {"t":"estop","on":true|false}
   {"t":"beep"} | {"t":"sound","name":"ok"}
+  {"t":"gesture","on":true|false}   hand gesture mode (robot camera)
   {"t":"ping","ts":123}
 
 Robot -> client
@@ -79,8 +80,9 @@ def _wifi_signal():
 
 
 class RobotApi(object):
-    def __init__(self, cfg, board, drive, camera, audio):
+    def __init__(self, cfg, board, drive, camera, audio, gestures=None):
         self.cfg = cfg
+        self.gestures = gestures
         self.board = board
         self.drive = drive
         self.camera = camera
@@ -124,6 +126,7 @@ class RobotApi(object):
             "cpu_temp_c": _cpu_temp_c(),
             "wifi": _wifi_signal(),
             "clients": len(self.clients),
+            "gesture": self.gestures.status() if self.gestures else None,
         }
 
     # ---- HTTP handlers ----------------------------------------------------
@@ -202,6 +205,7 @@ class RobotApi(object):
             "name": self.cfg["server"]["name"], "version": __version__,
             "limits": {"max_linear": c["max_linear"], "max_angular": c["max_angular"]},
             "sounds": self.audio.sounds(),
+            "features": {"gestures": bool(self.gestures and self.cfg["gestures"]["enabled"])},
         })
         telemetry = asyncio.ensure_future(self._telemetry(sock, client_id))
         try:
@@ -233,6 +237,8 @@ class RobotApi(object):
             if self.drive.driver_id == client_id:
                 self.drive.stop()
         elif t == "claim":
+            if data.get("force") and self.gestures and self.gestures.enabled:
+                self.gestures.disable("phone took control")
             if data.get("force") and self.drive.driver_id not in (None, client_id):
                 old = self.clients.get(self.drive.driver_id)
                 self.drive.release(self.drive.driver_id)
@@ -247,6 +253,15 @@ class RobotApi(object):
             for other in list(self.clients.values()):
                 if not other.closed:
                     await other.send_json({"t": "estop", "on": self.drive.estop})
+        elif t == "gesture" and self.gestures:
+            if data.get("on"):
+                self.drive.stop()
+                if not self.gestures.enable():
+                    await sock.send_json({"t": "error", "message": self.gestures.error or "gestures unavailable"})
+            else:
+                self.gestures.disable("turned off from app")
+                self.drive.claim(client_id)
+                await sock.send_json({"t": "control", "driver": self.drive.driver_id == client_id})
         elif t == "beep":
             self.board.beep(1900, 0.1, 0.05, 1)
         elif t == "sound":

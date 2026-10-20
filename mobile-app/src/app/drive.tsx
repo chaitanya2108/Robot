@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CameraView } from '../components/CameraView';
 import { EStopButton } from '../components/EStopButton';
+import { GestureHelp, GesturePanel } from '../components/GesturePanel';
 import { Hud } from '../components/Hud';
 import { Joystick } from '../components/Joystick';
 import { Button, IconButton, Segmented } from '../components/ui';
@@ -25,6 +26,8 @@ export default function Drive() {
   const insets = useSafeAreaInsets();
   const landscape = width > height;
   const [soundsOpen, setSoundsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
 
   const left = useRef<Stick>({ x: 0, y: 0 });
   const right = useRef<Stick>({ x: 0, y: 0 });
@@ -81,7 +84,16 @@ export default function Drive() {
   if (!robot || !client) return <Redirect href="/connect" />;
 
   const connected = state.status === 'connected';
-  const canDrive = connected && state.isDriver && !state.estop;
+  const gesture = state.telemetry?.gesture ?? null;
+  const gestureOn = connected && !!gesture?.enabled;
+  const gesturesAvailable = !!state.hello?.features?.gestures;
+  const gestureError = !gestureOn && gesture?.error && gesture.error !== dismissedError ? gesture.error : null;
+  const canDrive = connected && state.isDriver && !state.estop && !gestureOn;
+  const toggleGestures = () => {
+    if (settings.haptics) Haptics.selectionAsync();
+    client.setGestureMode(!gestureOn);
+    if (!gestureOn && !settings.cameraEnabled) updateSettings({ cameraEnabled: true });
+  };
   const stickSize = Math.min(landscape ? height * 0.42 : width * 0.4, 190);
   const dual = settings.controlMode === 'dual';
 
@@ -128,6 +140,9 @@ export default function Drive() {
         label="Toggle camera"
         onPress={() => updateSettings({ cameraEnabled: !settings.cameraEnabled })}
       />
+      {gesturesAvailable && (
+        <IconButton icon="hand-left-outline" label="Gesture control" active={gestureOn} onPress={toggleGestures} />
+      )}
       <IconButton icon="megaphone-outline" label="Horn" onPress={() => client.beep()} />
       {(state.hello?.sounds.length ?? 0) > 0 && (
         <IconButton icon="musical-notes-outline" label="Sounds" onPress={() => setSoundsOpen(true)} />
@@ -148,6 +163,14 @@ export default function Drive() {
           {robot.host}:{robot.port}. The robot stops by itself if the connection drops.
         </Text>
       )}
+    </View>
+  ) : gestureOn && gesture ? (
+    <GesturePanel status={gesture} onStop={() => client.setGestureMode(false)} onHelp={() => setHelpOpen(true)} />
+  ) : gestureError ? (
+    <View style={[styles.banner, { borderColor: colors.warn }]}>
+      <Text style={styles.bannerTitle}>Gesture control stopped</Text>
+      <Text style={styles.bannerText}>{gestureError}</Text>
+      <Button title="OK" variant="secondary" onPress={() => setDismissedError(gestureError)} />
     </View>
   ) : !state.isDriver ? (
     <View style={styles.banner}>
@@ -172,7 +195,14 @@ export default function Drive() {
             </View>
             {toolbar}
           </View>
-          {banner && <View style={styles.bannerWrap} pointerEvents="box-none">{banner}</View>}
+          {banner && (
+            <View
+              style={[styles.bannerWrap, gestureOn && { justifyContent: 'flex-start', paddingTop: insets.top + 64 }]}
+              pointerEvents="box-none"
+            >
+              {banner}
+            </View>
+          )}
           <View
             style={[
               styles.bottomRow,
@@ -213,6 +243,7 @@ export default function Drive() {
         </>
       )}
 
+      <GestureHelp visible={helpOpen} onClose={() => setHelpOpen(false)} />
       <Modal visible={soundsOpen} transparent animationType="fade" onRequestClose={() => setSoundsOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setSoundsOpen(false)}>
           <View style={styles.modalCard}>

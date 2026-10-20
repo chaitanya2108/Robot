@@ -176,4 +176,9 @@ export class RobotClient {
   playSound(name: string) {
     return this.send({ t: 'sound', name });
   }
+  /** Hand gesture mode: the robot watches its own camera for gestures. */
+  setGestureMode(on: boolean) {
+    this.set({ lastError: null });
+    return this.send({ t: 'gesture', on });
+  }
 }

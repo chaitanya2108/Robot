@@ -13,6 +13,7 @@ from .board import BoardUnavailable, FakeBoard, MotorBoard
 from .buttons import Buttons
 from .camera import CameraService
 from .drive import DriveController
+from .gestures.service import GestureService
 
 
 def main(argv=None):
@@ -47,7 +48,8 @@ def main(argv=None):
     drive = DriveController(board, cfg["chassis"], cfg["safety"])
     camera = CameraService(cfg["camera"], loop)
     audio = Audio(cfg["audio"])
-    api = RobotApi(cfg, board, drive, camera, audio)
+    gestures = GestureService(cfg["gestures"], camera, drive, board, loop)
+    api = RobotApi(cfg, board, drive, camera, audio, gestures)
     buttons = Buttons(cfg["buttons"], board, on_shutdown=board.stop_motors)
 
     app = build_app(api)
@@ -61,6 +63,7 @@ def main(argv=None):
         log.info("shutting down")
         for sock in list(api.clients.values()):
             await sock.close()
+        gestures.shutdown()
         await drive.shutdown()
         camera.shutdown()
         board.close()
